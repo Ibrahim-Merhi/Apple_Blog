@@ -49,10 +49,12 @@ const createDataBase = async () => {
             id INTEGER PRIMARY KEY AUTO_INCREMENT,
             title VARCHAR(50) NOT NULL UNIQUE,
             description VARCHAR(255),
+            categories VARCHAR(50) NOT NULL,
             content VARCHAR(255),
             image VARCHAR(255),
             view INTEGER,
-            date TIMESTAMP NOT NULL,
+            date TIMESTAMP ,
+            news BOOLEAN NOT NULL,
             user_id INTEGER NOT NULL,
             FOREIGN KEY (user_id) REFERENCES users(id)
         )`;

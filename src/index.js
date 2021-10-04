@@ -45,7 +45,19 @@ const start = async () => {
   // GET LIST BLOG
   app.get("/blog", async (req, res, next) => {
     try {
-      let sql = `SELECT * FROM blogs`;
+      let sql = `SELECT * FROM blogs ORDER BY DATE DESC`;
+      connection.query(sql, function (err, result) {
+        if (err) throw err;
+        res.json({ success: true, result });
+      });
+    } catch (e) {
+      next(e);
+    }
+  });
+  // GET LIST BLOG WITH NEWS
+  app.get("/blog/news1", async (req, res, next) => {
+    try {
+      let sql = `SELECT * FROM blogs WHERE news = 1`;
       connection.query(sql, function (err, result) {
         if (err) throw err;
         res.json({ success: true, result });
@@ -55,6 +67,18 @@ const start = async () => {
     }
   });
 
+   // GET LIST BLOG WITHOUT NEWS
+   app.get("/blog/news0", async (req, res, next) => {
+    try {
+      let sql = `SELECT * FROM blogs WHERE news = 0`;
+      connection.query(sql, function (err, result) {
+        if (err) throw err;
+        res.json({ success: true, result });
+      });
+    } catch (e) {
+      next(e);
+    }
+  });
   // READ SINGLE BLOG
   app.get("/blog/:id", async (req, res, next) => {
     const { id } = req.params;
@@ -71,11 +95,11 @@ const start = async () => {
 
   // CREATE BLOG
   app.post("/blog", async (req, res, next) => {
-    const { title, description, content, image, view, date, user_id } =
+    const { title, description, categories, content, image, view, date, news, user_id } =
       req.body;
-    let att = "title, description, content, image, view, date, user_id";
-    let values = [title, description, content, image, view, date, user_id];
-    let inValues = "?, ?, ?, ?, ?, ?, ?";
+    let att = "title, description, categories, content, image, view, date, news, user_id";
+    let values = [title, description, categories, content, image, view, date, news, user_id];
+    let inValues = "?, ?, ?, ?, ?, ?, ?, ?, ?";
 
     // if (description) {
     //   att += `, description`;
@@ -111,7 +135,7 @@ const start = async () => {
   // UPDATE BLOG
   app.put("/blog/:id", async (req, res, next) => {
     const { id } = req.params;
-    const { title, description, content, image, view, date, user_id } =
+    const { title, description, categories, content, image, view, date, news, user_id } =
       req.body;
     let att = ``;
     let attValues = [];
@@ -123,6 +147,10 @@ const start = async () => {
     if (description) {
       att += ` description = ? ,`;
       attValues.push(description);
+    }
+    if (categories) {
+      att += ` categories = ? ,`;
+      attValues.push(categories);
     }
     if (content) {
       att += ` content = ? ,`;
@@ -139,6 +167,10 @@ const start = async () => {
     if (date) {
       att += ` date = ? ,`;
       attValues.push(date);
+    }
+    if (news) {
+      att += ` news = ? ,`;
+      attValues.push(news);
     }
     if (user_id) {
       att += ` user_id = ? ,`;
@@ -516,15 +548,18 @@ const start = async () => {
   app.get("/comment/:id", async (req, res, next) => {
     const { id } = req.params;
     try {
-      let sql = `SELECT * FROM comments WHERE id = ${id} LIMIT 1`;
+      let sql = `SELECT * FROM comments 
+                JOIN users ON users.id = comments.user_id
+                  WHERE blog_id = ${id}`;
       connection.query(sql, function (err, result) {
         if (err) throw err;
-        res.json({ success: true, result: result[0] });
+        res.json({ success: true, result  });
       });
     } catch (e) {
       next(e);
     }
   });
+ 
 
   // CREATE COMMENT
   app.post("/comment", async (req, res, next) => {
